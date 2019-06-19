@@ -2,6 +2,7 @@ import os
 
 import cv2
 import numpy
+from numba import jit
 
 LABEL_MN = 0x00000801
 IMAGE_MN = 0x00000803
@@ -105,7 +106,7 @@ def read_weights(path):
 
 def setup_pointers():
     counts = [COUNT_1, COUNT_2, COUNT_3, COUNT_4]
-    nn = numpy.empty([9], dtype=object)
+    nn = numpy.empty([9], dtype=numpy.ndarray)
 
     for x in zip(range(4), counts):
         nn[x[0]] = numpy.zeros([x[1]], dtype=numpy.float64)
@@ -153,29 +154,66 @@ def evaluate_img(img_row, nn):
 def gradient_descend(nn, batch, labels):
     weights_grad = numpy.zeros([WEIGHTS_COUNT], dtype=numpy.float64)
     biases_grad = numpy.zeros([BIASES_COUNT], dtype=numpy.float64)
-
+    count = 0
     for x in zip(batch, labels):
+        print(str(count) + ' ', end='')
+        count += 1
         tgt = numpy.full([10], 0.0, dtype=numpy.float64)
-        tgt[pair[1]] = 1.0
-        evaluate_img(pair[0], n_n)
+        tgt[x[1]] = 1.0
+        evaluate_img(x[0], nn)
 
-        row_3rd = numpy.empty([COUNT_4 * COUNT_3], dtype=numpy.float64)
-        count = 0
-        for i in zip(nn[3], tgt):
-            for k in nn[2]:
-                row_3rd[count] = 2 * (i[0] - i[1]) * i[0] * (1 - i[0]) * nn[2][k]
-                count += 1
-
-        count = 0
-        row_2nd = numpy.empty([COUNT_2 * COUNT_3], dtype=numpy.float64)
+        weight_row = numpy.empty([WEIGHTS_COUNT], dtype=numpy.float64)
+        bias_row = numpy.empty([BIASES_COUNT], dtype=numpy.float64)
+        w_count = 0
+        b_count = 0
 
         for j in enumerate(nn[1]):
-            for i in enumerate(nn[2]):
-                col = numpy.empty([COUNT_4], dtype=numpy.float64)
+            for l in enumerate(nn[0]):
+                k_ith = 0
                 for k in zip(nn[3], tgt, range(COUNT_4), nn[8]):
-                    col[k[2]] = 2 * (k[0] - k[1]) * k[0] * (1 - k[0]) * k[3][1][i[0]] * i[1] * (1 - i[1]) * j[1]
-                row_2nd[count] = sum(col)
-                count += 1
+                    for i in zip(range(COUNT_3), nn[2], nn[7]):
+                        k_ith += 2 * (k[0] - k[1]) * k[0] * (1 - k[0]) * k[3][1][i[0]] * \
+                                 i[1] * (1 - i[1]) * j[1] * (1 - j[1]) * i[2][1][k[2]] * j[1] * (1 - j[1]) * l[1]
+                weight_row[w_count] = k_ith
+                w_count += 1
+
+            k_ith = 0
+            for k in zip(nn[3], tgt, range(COUNT_4), nn[8]):
+                for i in zip(range(COUNT_3), nn[2], nn[7]):
+                    k_ith += 2 * (k[0] - k[1]) * k[0] * (1 - k[0]) * k[3][1][i[0]] * \
+                             i[1] * (1 - i[1]) * j[1] * (1 - j[1]) * i[2][1][k[2]] * j[1] * (1 - j[1])
+            bias_row[b_count] = k_ith
+            b_count += 1
+
+        for i in enumerate(nn[2]):
+            for j in enumerate(nn[1]):
+                k_th = 0
+                for k in zip(nn[3], tgt, range(COUNT_4), nn[8]):
+                    k_th += 2 * (k[0] - k[1]) * k[0] * (1 - k[0]) * k[3][1][i[0]] * i[1] * (1 - i[1]) * j[1]
+                weight_row[b_count] = k_th
+                w_count += 1
+
+            k_th = 0
+            for k in zip(nn[3], tgt, range(COUNT_4), nn[8]):
+                k_th += 2 * (k[0] - k[1]) * k[0] * (1 - k[0]) * k[3][1][i[0]] * i[1] * (1 - i[1])
+            bias_row[b_count] = k_th
+            b_count += 1
+
+        for k in zip(nn[3], tgt):
+            for i in nn[2]:
+                weight_row[w_count] = 2 * (k[0] - k[1]) * k[0] * (1 - k[0]) * i
+                w_count += 1
+
+            bias_row[b_count] = 2 * (k[0] - k[1]) * k[0] * (1 - k[0])
+            b_count += 1
+
+        weights_grad += weight_row
+        biases_grad += bias_row
+
+    weights_grad /= len(batch)
+    biases_grad /= len(batch)
+
+    return - weights_grad, - biases_grad
 
 
 def cost(nn, tgt):
@@ -192,9 +230,9 @@ images, lbl = parse_images('t10k-labels-idx1-ubyte', 't10k-images-idx3-ubyte')
 
 success_count = 0.0
 
-for pair in zip(images, lbl):
+for f in range(len(images) // 100):
     base = numpy.full([10], 0.0, dtype=numpy.float64)
-    base[pair[1]] = 1.0
-    evaluate_img(pair[0], n_n)
+    base[lbl[f]] = 1.0
+    n_n[4], n_n[5] = n_n[4], n_n[5] + gradient_descend(n_n, images[f * 100: (f + 1) * 100], lbl[f * 100: (f + 1) * 100])
     print(cost(n_n, base))
 # print("Success ratio: {}%".format(success_count / len(images) * 100))
