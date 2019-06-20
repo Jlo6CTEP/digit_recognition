@@ -1,22 +1,28 @@
 import os
+import random
 
-import cv2
 import numpy
-from numba import jit
 
 LABEL_MN = 0x00000801
 IMAGE_MN = 0x00000803
 
 WEIGHTS_MN = 0x00000805
 
-COUNT_1 = 784
-COUNT_2 = 16
-COUNT_3 = 16
-COUNT_4 = 10
+B_SIZE = 100
 
-WEIGHTS_COUNT = COUNT_1 * COUNT_2 + COUNT_2 * COUNT_3 + COUNT_3 * COUNT_4
-BIASES_COUNT = COUNT_2 + COUNT_3 + COUNT_4
+EPOCH_COUNT = 32
 
+L_1 = 784
+L_2 = 64
+L_3 = 64
+L_4 = 10
+
+WEIGHTS_COUNT = L_1 * L_2 + L_2 * L_3 + L_3 * L_4
+BIASES_COUNT = L_2 + L_3 + L_4
+
+MODE = 0
+
+TRAINED
 
 def sigmoid(x):
     return 1 / (1 + numpy.e ** (-x))
@@ -72,22 +78,27 @@ def parse_images(fname_labels, fname_imgs):
     return img, lbl
 
 
-def random_weights(n_weights, n_biases):
+def write_out_weights(weights, biases, preffix):
     try:
-        f = open(os.path.join('./random_coefficients', 'vector'), 'xb')
+        f = open(os.path.join(preffix, 'vector'), 'xb')
     except FileExistsError:
-        f = open(os.path.join('./random_coefficients', 'vector'), 'wb')
+        f = open(os.path.join(preffix, 'vector'), 'wb')
 
     f.write(int.to_bytes(WEIGHTS_MN, 4, byteorder='big'))
-    f.write(int.to_bytes(n_weights, 4, byteorder='big'))
-    f.write(int.to_bytes(n_biases, 4, byteorder='big'))
-    weights = numpy.random.uniform(-5, 5, n_weights)
-    biases = numpy.random.uniform(-5, 5, n_biases)
+    f.write(int.to_bytes(len(weights), 4, byteorder='big'))
+    f.write(int.to_bytes(len(biases), 4, byteorder='big'))
 
     weights.tofile(f, "", "")
     biases.tofile(f, "", "")
 
     return weights, biases
+
+
+def random_weights(n_weights, n_biases):
+    weights = numpy.random.uniform(-1, 1, n_weights)
+    biases = numpy.random.uniform(-1, 1, n_biases)
+
+    return write_out_weights(weights, biases, './random_coefficients')
 
 
 def read_weights(path):
@@ -104,116 +115,59 @@ def read_weights(path):
     return weights, biases
 
 
-def setup_pointers():
-    counts = [COUNT_1, COUNT_2, COUNT_3, COUNT_4]
-    nn = numpy.empty([9], dtype=numpy.ndarray)
+def load_nn(weights, biases):
+    return [
+        numpy.zeros(L_1),
+        numpy.zeros(L_2),
+        numpy.zeros(L_3),
+        numpy.zeros(L_4),
 
-    for x in zip(range(4), counts):
-        nn[x[0]] = numpy.zeros([x[1]], dtype=numpy.float64)
+        numpy.reshape(weights[0: L_1 * L_2], (-1, L_2)),
+        numpy.reshape(weights[L_1 * L_2: L_1 * L_2 + L_2 * L_3], (-1, L_3)),
+        numpy.reshape(weights[L_1 * L_2 + L_2 * L_3: WEIGHTS_COUNT], (-1, L_4)),
 
-    nn[4] = numpy.zeros([WEIGHTS_COUNT], dtype=numpy.float64)
-    nn[5] = numpy.zeros([BIASES_COUNT], dtype=numpy.float64)
-
-    weights_count = 0
-    biases_count = 0
-
-    for x in zip(range(6, 9), counts[1:]):
-        nn[x[0]] = numpy.empty([x[1]], dtype=numpy.object)
-
-    for count in range(6, 9):
-        step = counts[count - 6]
-        for x in range(len(nn[count])):
-            nn[count][x] = numpy.empty([3], dtype=numpy.object)
-            nn[count][x][0] = nn[count - 6]
-            nn[count][x][1] = nn[4][weights_count: weights_count + step]
-            nn[count][x][2] = nn[5][biases_count: biases_count + 1]
-
-            weights_count += step
-            biases_count += 1
-    return nn
-
-
-def load_nn(weights, biases, nn):
-    numpy.copyto(nn[4], weights)
-    numpy.copyto(nn[5], biases)
-
-
-def update_nn(weights, biases, nn):
-    nn[4] += weights
-    nn[5] += biases
+        biases[0: L_2],
+        biases[L_2: L_2 + L_3],
+        biases[L_2 + L_3: BIASES_COUNT]
+    ]
 
 
 def evaluate_img(img_row, nn):
     numpy.copyto(nn[0], img_row)
 
-    for count in range(6, 9):
-        for x in range(len(nn[count])):
-            nn[count - 5][x] = sigmoid(nn[count][x][0].dot(nn[count][x][1]) + nn[count][x][2][0])
+    for x in range(0, 3):
+        numpy.copyto(nn[x + 1], sigmoid(nn[x].dot(nn[x + 4]) + nn[x + 7]))
+    return numpy.argmax(nn[3])
 
 
-def gradient_descend(nn, batch, labels):
-    weights_grad = numpy.zeros([WEIGHTS_COUNT], dtype=numpy.float64)
-    biases_grad = numpy.zeros([BIASES_COUNT], dtype=numpy.float64)
+def gradient_descend(batch, labels, nn):
+    a_1, a_2, a_3, a_4, w_lj, w_ji, w_ik, b_2, b_3, b_4 = nn
+
+    b_2t, b_3t, b_4t = numpy.zeros(L_2), numpy.zeros(L_3), numpy.zeros(L_4)
+    w_lj_t, w_ji_t, w_ik_t = numpy.zeros([L_1, L_2]), numpy.zeros([L_2, L_3]), numpy.zeros([L_3, L_4]),
+
     count = 0
-    for x in zip(batch, labels):
-        print(str(count) + ' ', end='')
+    for sample in range(len(batch)):
         count += 1
-        tgt = numpy.full([10], 0.0, dtype=numpy.float64)
-        tgt[x[1]] = 1.0
-        evaluate_img(x[0], nn)
+        tgt = numpy.zeros(10)
+        tgt[labels[sample]] = 1.0
+        evaluate_img(batch[sample], nn)
 
-        weight_row = numpy.empty([WEIGHTS_COUNT], dtype=numpy.float64)
-        bias_row = numpy.empty([BIASES_COUNT], dtype=numpy.float64)
-        w_count = 0
-        b_count = 0
+        a = 2 * (a_4 - tgt) * a_4 * (1 - a_4)
+        b = (2 * (a_4 - tgt) * a_4 * (1 - a_4)).dot(w_ik.transpose()) * (a_3 * (1 - a_3))
+        c = (2 * (a_4 - tgt) * a_4 * (1 - a_4)).dot(w_ik.transpose()) * \
+            (a_3 * (1 - a_3)).dot(w_ji.transpose()) * (a_2 * (1 - a_2))
 
-        for j in enumerate(nn[1]):
-            for l in enumerate(nn[0]):
-                k_ith = 0
-                for k in zip(nn[3], tgt, range(COUNT_4), nn[8]):
-                    for i in zip(range(COUNT_3), nn[2], nn[7]):
-                        k_ith += 2 * (k[0] - k[1]) * k[0] * (1 - k[0]) * k[3][1][i[0]] * \
-                                 i[1] * (1 - i[1]) * j[1] * (1 - j[1]) * i[2][1][k[2]] * j[1] * (1 - j[1]) * l[1]
-                weight_row[w_count] = k_ith
-                w_count += 1
+        b_2t += c
+        b_3t += b
+        b_4t += a
 
-            k_ith = 0
-            for k in zip(nn[3], tgt, range(COUNT_4), nn[8]):
-                for i in zip(range(COUNT_3), nn[2], nn[7]):
-                    k_ith += 2 * (k[0] - k[1]) * k[0] * (1 - k[0]) * k[3][1][i[0]] * \
-                             i[1] * (1 - i[1]) * j[1] * (1 - j[1]) * i[2][1][k[2]] * j[1] * (1 - j[1])
-            bias_row[b_count] = k_ith
-            b_count += 1
+        w_lj_t += c.reshape((-1, 1)).dot([a_1]).transpose()
+        w_ji_t += b.reshape((-1, 1)).dot([a_2]).transpose()
+        w_ik_t += a.reshape((-1, 1)).dot([a_3]).transpose()
 
-        for i in enumerate(nn[2]):
-            for j in enumerate(nn[1]):
-                k_th = 0
-                for k in zip(nn[3], tgt, range(COUNT_4), nn[8]):
-                    k_th += 2 * (k[0] - k[1]) * k[0] * (1 - k[0]) * k[3][1][i[0]] * i[1] * (1 - i[1]) * j[1]
-                weight_row[b_count] = k_th
-                w_count += 1
-
-            k_th = 0
-            for k in zip(nn[3], tgt, range(COUNT_4), nn[8]):
-                k_th += 2 * (k[0] - k[1]) * k[0] * (1 - k[0]) * k[3][1][i[0]] * i[1] * (1 - i[1])
-            bias_row[b_count] = k_th
-            b_count += 1
-
-        for k in zip(nn[3], tgt):
-            for i in nn[2]:
-                weight_row[w_count] = 2 * (k[0] - k[1]) * k[0] * (1 - k[0]) * i
-                w_count += 1
-
-            bias_row[b_count] = 2 * (k[0] - k[1]) * k[0] * (1 - k[0])
-            b_count += 1
-
-        weights_grad += weight_row
-        biases_grad += bias_row
-
-    weights_grad /= len(batch)
-    biases_grad /= len(batch)
-
-    return - weights_grad, - biases_grad
+    for x in zip(range(4, 10), [w_lj_t, w_ji_t, w_ik_t, b_2t, b_3t, b_4t]):
+        nn[x[0]] -= x[1] / len(batch) * 3
 
 
 def cost(nn, tgt):
@@ -221,18 +175,27 @@ def cost(nn, tgt):
 
 
 random_weights(WEIGHTS_COUNT, BIASES_COUNT)
-weight, bias = read_weights('./random_coefficients/vector')
+weight, bias = read_weights()
 
-n_n = setup_pointers()
-load_nn(weight, bias, n_n)
+n_n = load_nn(weight, bias)
 
-images, lbl = parse_images('t10k-labels-idx1-ubyte', 't10k-images-idx3-ubyte')
+train_images = list(zip(*parse_images('train-labels-idx1-ubyte', 'train-images-idx3-ubyte')))
+test_images = list(zip(*parse_images('t10k-labels-idx1-ubyte', 't10k-images-idx3-ubyte')))
 
-success_count = 0.0
+print()
+for epoch in range(EPOCH_COUNT):
+    random.shuffle(train_images)
+    for f in range(len(train_images) // B_SIZE):
+        gradient_descend(*zip(*train_images[f * B_SIZE: (f + 1) * B_SIZE]), n_n)
+        if f % 120 == 0:
+            print("Epoch {} finished {}% percents".format(epoch, f * 100 * B_SIZE / len(train_images)))
+    print("Epoch {} just ended".format(epoch))
 
-for f in range(len(images) // 100):
-    base = numpy.full([10], 0.0, dtype=numpy.float64)
-    base[lbl[f]] = 1.0
-    n_n[4], n_n[5] = n_n[4], n_n[5] + gradient_descend(n_n, images[f * 100: (f + 1) * 100], lbl[f * 100: (f + 1) * 100])
-    print(cost(n_n, base))
-# print("Success ratio: {}%".format(success_count / len(images) * 100))
+    success_count = 0.0
+    for f in test_images:
+        if evaluate_img(f[0], n_n) == f[1]:
+            success_count += 1.0
+    print("Success ratio: {}%".format(success_count / len(test_images) * 100))
+
+write_out_weights(numpy.concatenate([x.flatten() for x in n_n[4:7]]), numpy.concatenate(n_n[7:10]),
+                  './trained_coefficients')
