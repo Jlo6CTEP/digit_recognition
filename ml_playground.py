@@ -10,7 +10,7 @@ WEIGHTS_MN = 0x00000805
 
 B_SIZE = 100
 
-EPOCH_COUNT = 32
+EPOCH_COUNT = 1
 
 L_1 = 784
 L_2 = 64
@@ -22,7 +22,10 @@ BIASES_COUNT = L_2 + L_3 + L_4
 
 MODE = 0
 
-TRAINED
+TRAINED_DIR = './trained_coefficients'
+RAND_DIR = './random_coefficients'
+WEIGHTS_FILE = 'vector'
+
 
 def sigmoid(x):
     return 1 / (1 + numpy.e ** (-x))
@@ -98,7 +101,7 @@ def random_weights(n_weights, n_biases):
     weights = numpy.random.uniform(-1, 1, n_weights)
     biases = numpy.random.uniform(-1, 1, n_biases)
 
-    return write_out_weights(weights, biases, './random_coefficients')
+    return write_out_weights(weights, biases, RAND_DIR)
 
 
 def read_weights(path):
@@ -174,8 +177,8 @@ def cost(nn, tgt):
     return sum((nn[3] - tgt) ** 2)
 
 
-random_weights(WEIGHTS_COUNT, BIASES_COUNT)
-weight, bias = read_weights()
+#random_weights(WEIGHTS_COUNT, BIASES_COUNT)
+weight, bias = read_weights(os.path.join(TRAINED_DIR, WEIGHTS_FILE))
 
 n_n = load_nn(weight, bias)
 
@@ -198,4 +201,4 @@ for epoch in range(EPOCH_COUNT):
     print("Success ratio: {}%".format(success_count / len(test_images) * 100))
 
 write_out_weights(numpy.concatenate([x.flatten() for x in n_n[4:7]]), numpy.concatenate(n_n[7:10]),
-                  './trained_coefficients')
+                  TRAINED_DIR)
