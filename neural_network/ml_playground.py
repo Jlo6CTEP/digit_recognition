@@ -4,6 +4,7 @@ from neural_network.network import Network
 nn = Network(64, 64, 3, 50, 100, True)
 test_images = ImageIO(0)
 
+
 success_count = 0
 for x in test_images.train_set:
     if nn.evaluate_img(x[0]) == x[1]:
