@@ -17,7 +17,44 @@ h2 {
 
 .input {
     border: dashed darkgray;
-    border-radius: 4px;
+    border-radius: 5px;
     text-align: center;
     height: 50vh;
+}
+
+.control {
+    position: absolute;
+    overflow: hidden;
+    bottom: 32px;
+    right: 39px;
+    max-width: 100px;
+    transition: max-width 0.3s;
+    cursor: default;
+}
+
+.collapsed {
+    max-width: 0;
+}
+
+
+.btn-default {
+
+background-color: white;
+
+color:grey;
+
+border-color: grey;
+
+}
+
+.btn-default:hover, .btn-default:focus, .btn-default:active, .btn-default.active, .open .dropdown-toggle.btn-default {
+
+
+
+background-color: wheat;
+
+color:black;
+
+border-color: black;
+
 }

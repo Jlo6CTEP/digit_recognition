@@ -12,6 +12,18 @@
         <link rel="stylesheet" type="text/css" href="{% static 'digit_recognition/base.css' %}">
         <title> Digits </title>
 
+        <style>
+            .eraser{
+                cursor: url({% static 'digit_recognition/eraser-solid.svg' %}), auto;
+            }
+            .select{
+                cursor: default;
+            }
+            .pencil {
+                cursor: url({% static 'digit_recognition/pencil-alt-solid.svg' %}), auto;
+            }
+        </style>
+
     </head>
     <body>
         <div class="container-fluid full d-flex flex-column justify-content-between">
@@ -36,9 +48,23 @@
                     <div class="row justify-content-center">
                         <div class="col-auto pb-2">
                             <div style="background-image: url({% static 'digit_recognition/background.jpg' %}); height: 477px; width: 477px">
-                                <canvas style="height: 477px; width: 477px" id="drawing_board">
+                                <canvas style="height: 477px; width: 477px;" id="drawing_board" class="select">
 
                                 </canvas>
+                                <div class="btn-group-vertical btn-group-toggle control collapsed" data-toggle="buttons" id="collapser">
+                                    <label class="btn btn-default active" id="select">
+                                        <input type="radio" name="options" autocomplete="off" checked>
+                                        <i class="fas fa-mouse-pointer fa-2x"></i>
+                                    </label>
+                                    <label class="btn btn-default" id="pencil">
+                                        <input type="radio" name="options" autocomplete="off">
+                                        <i class="fas fa-pencil-alt fa-2x"></i>
+                                    </label>
+                                    <label class="btn btn-default" id="eraser">
+                                        <input type="radio" name="options" autocomplete="off">
+                                        <i class="fas fa-eraser fa-2x"></i>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
