@@ -14,13 +14,15 @@
 
         <style>
             .eraser{
-                cursor: url({% static 'digit_recognition/eraser-solid.svg' %}), auto;
+                cursor: -webkit-image-set(url({% static 'digit_recognition/eraser-solid1x.svg' %}) 1x,
+                                          url({% static 'digit_recognition/eraser-solid2x.svg' %}) 2x), auto;
             }
             .select{
                 cursor: default;
             }
             .pencil {
-                cursor: url({% static 'digit_recognition/pencil-alt-solid.svg' %}), auto;
+                cursor: -webkit-image-set(url({% static 'digit_recognition/pencil-alt-solid1x.svg' %}) 1x,
+                                          url({% static 'digit_recognition/pencil-alt-solid2x.svg' %}) 2x), auto;
             }
         </style>
 
