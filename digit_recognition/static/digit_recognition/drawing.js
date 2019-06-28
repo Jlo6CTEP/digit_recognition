@@ -27,11 +27,16 @@ drawer.fillStyle = 'red';
 canvas.style.border = '0px solid darkgray';
 
 canvas.addEventListener('click', toggle, {capture: true});
-canvas.addEventListener('mousedown', mousedown);
-canvas.addEventListener('mouseup', mouseup);
-canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('down', () => down(false));
+canvas.addEventListener('up', up);
+canvas.addEventListener('mousemove', () => draw(false));
 canvas.addEventListener('mouseout', mouseout);
 canvas.addEventListener('mouseover', mouseover);
+
+canvas.addEventListener('touchstart', () => down(true));
+canvas.addEventListener('touchend', up);
+canvas.addEventListener('touchmove', () => draw(true));
+
 body.addEventListener('click', deactivate);
 
 select.addEventListener('click', () => change_tool(select), {capture: true});
@@ -82,16 +87,22 @@ function change_tool(object) {
     }
 }
 
-function mousedown() {
+function down(touch_mode) {
     if (active === true && (tool === 'pencil' || tool === 'eraser')) {
         collapser.classList.toggle('collapsed');
         drawing = true;
-        prev_x = event.clientX - canvas.getBoundingClientRect().left;
-        prev_y = event.clientY - canvas.getBoundingClientRect().top;
+        if (touch_mode === true) {
+            prev_x = event.changedTouches[0].clientX - canvas.getBoundingClientRect().left;
+            prev_y = event.changedTouches[0].clientY - canvas.getBoundingClientRect().top;
+            event.preventDefault();
+        } else {
+            prev_x = event.clientX - canvas.getBoundingClientRect().left;
+            prev_y = event.clientY - canvas.getBoundingClientRect().top;
+        }
     }
 }
 
-function mouseup() {
+function up(){
     if (drawing === true) {
         collapser.classList.toggle('collapsed');
     }
@@ -111,14 +122,20 @@ function mouseout() {
     }
 }
 
-function draw() {
+function draw(touch_mode) {
 
     if (active) {
         let x;
         let y;
         if (drawing) {
-            x = event.clientX - canvas.getBoundingClientRect().left;
-            y = event.clientY - canvas.getBoundingClientRect().top;
+            if (touch_mode === true) {
+                x = event.changedTouches[0].clientX - canvas.getBoundingClientRect().left;
+                y = event.changedTouches[0].clientY - canvas.getBoundingClientRect().top;
+                event.preventDefault();
+            } else {
+                x = event.clientX - canvas.getBoundingClientRect().left;
+                y = event.clientY - canvas.getBoundingClientRect().top;
+            }
 
             if (tool === 'pencil') {
                 drawer.strokeStyle = 'black';
@@ -149,12 +166,12 @@ function draw() {
                 drawer.save();
                 drawer.translate(x1, y1);
                 drawer.rotate(Math.atan2(y2 - y1, x2 - x1));
-                drawer.clearRect(0, -7.5, length, 15);
+                drawer.clearRect(0, -square_clear/2, length, square_clear);
                 drawer.restore();
             }
             prev_x = x;
             prev_y = y;
-            //console.log(x + ' ' + y)
+            console.log(x + ' ' + y)
         }
     }
 }
