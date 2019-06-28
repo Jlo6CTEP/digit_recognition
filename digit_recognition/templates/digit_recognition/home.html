@@ -15,14 +15,14 @@
         <style>
             .eraser{
                 cursor: -webkit-image-set(url({% static 'digit_recognition/eraser-solid1x.svg' %}) 1x,
-                                          url({% static 'digit_recognition/eraser-solid2x.svg' %}) 2x), auto;
+                                          url({% static 'digit_recognition/eraser-solid2x.svg' %}) 2x) 0 32, auto;
             }
             .select{
                 cursor: default;
             }
             .pencil {
                 cursor: -webkit-image-set(url({% static 'digit_recognition/pencil-alt-solid1x.svg' %}) 1x,
-                                          url({% static 'digit_recognition/pencil-alt-solid2x.svg' %}) 2x), auto;
+                                          url({% static 'digit_recognition/pencil-alt-solid2x.svg' %}) 2x) 0 32, auto;
             }
         </style>
 
@@ -49,23 +49,28 @@
 
                     <div class="row justify-content-center">
                         <div class="col-auto pb-2">
-                            <div style="background-image: url({% static 'digit_recognition/background.jpg' %}); height: 477px; width: 477px">
-                                <canvas style="height: 477px; width: 477px;" id="drawing_board" class="select">
+                            <div class="wrapper" id="wrapper">
+                                <div style="background-image: url({% static 'digit_recognition/background.jpg' %}); height: 477px; width: 477px;">
+                                    <canvas id="drawing_board" class="select" width="477" height="477">
 
-                                </canvas>
-                                <div class="btn-group-vertical btn-group-toggle control collapsed" data-toggle="buttons" id="collapser">
-                                    <label class="btn btn-default active" id="select">
-                                        <input type="radio" name="options" autocomplete="off" checked>
-                                        <i class="fas fa-mouse-pointer fa-2x"></i>
-                                    </label>
-                                    <label class="btn btn-default" id="pencil">
-                                        <input type="radio" name="options" autocomplete="off">
-                                        <i class="fas fa-pencil-alt fa-2x"></i>
-                                    </label>
-                                    <label class="btn btn-default" id="eraser">
-                                        <input type="radio" name="options" autocomplete="off">
-                                        <i class="fas fa-eraser fa-2x"></i>
-                                    </label>
+                                    </canvas>
+                                    <div class="btn-group-vertical btn-group-toggle control collapsed" data-toggle="buttons" id="collapser">
+                                        <label class="btn btn-default active" id="select">
+                                            <input type="radio" name="options" autocomplete="off" checked>
+                                            <i class="fas fa-mouse-pointer fa-2x"></i>
+                                        </label>
+                                        <label class="btn btn-default" id="pencil">
+                                            <input type="radio" name="options" autocomplete="off">
+                                            <i class="fas fa-pencil-alt fa-2x"></i>
+                                        </label>
+                                        <label class="btn btn-default" id="eraser">
+                                            <input type="radio" name="options" autocomplete="off">
+                                            <i class="fas fa-eraser fa-2x"></i>
+                                        </label>
+                                        <button class="btn btn-default" id="trash">
+                                            <i class="far fa-trash-alt fa-2x"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
