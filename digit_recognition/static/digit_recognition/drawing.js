@@ -1,24 +1,31 @@
-var toolkit = ['select', 'eraser', 'pencil'];
+let wrapper = document.getElementById('wrapper');
+let canvas = document.getElementById('drawing_board');
+let eraser = document.getElementById('eraser');
+let pencil = document.getElementById('pencil');
+let select = document.getElementById('select');
+let trash = document.getElementById('trash');
+let undo = document.getElementById('undo');
+let redo = document.getElementById('redo');
+let collapser = document.getElementById('collapser');
 
-var wrapper = document.getElementById('wrapper');
-var canvas = document.getElementById('drawing_board');
-var eraser = document.getElementById('eraser');
-var pencil = document.getElementById('pencil');
-var select = document.getElementById('select');
-var trash = document.getElementById('trash');
-var collapser = document.getElementById('collapser');
+let drawer = canvas.getContext('2d');
+let body = document.body;
 
-var drawer = canvas.getContext('2d');
-var body = document.body;
+let active = false;
+let drawing = false;
+let tool = 'select';
 
-var active = false;
-var drawing = false;
-var tool = 'select';
-
-var prev_x = 0;
-var prev_y = 0;
+let prev_x = 0;
+let prev_y = 0;
+let length = 0;
 
 const square_clear = 30;
+const size = 477;
+
+const history_size = 10;
+let action_ptr = 0;
+let action_stack = Array(history_size).fill(null);
+action_stack[0] = drawer.getImageData(0, 0, size, size);
 
 
 colors = ['red', 'green', 'blue', 'yellow'];
@@ -27,8 +34,8 @@ drawer.fillStyle = 'red';
 canvas.style.border = '0px solid darkgray';
 
 canvas.addEventListener('click', toggle, {capture: true});
-canvas.addEventListener('down', () => down(false));
-canvas.addEventListener('up', up);
+canvas.addEventListener('mousedown', () => down(false));
+canvas.addEventListener('mouseup', up);
 canvas.addEventListener('mousemove', () => draw(false));
 canvas.addEventListener('mouseout', mouseout);
 canvas.addEventListener('mouseover', mouseover);
@@ -43,11 +50,31 @@ select.addEventListener('click', () => change_tool(select), {capture: true});
 pencil.addEventListener('click', () => change_tool(pencil), {capture: true});
 eraser.addEventListener('click', () => change_tool(eraser), {capture: true});
 trash.addEventListener('click', trashcan, {capture: true});
+undo.addEventListener('click', f_undo, {capture: true});
+redo.addEventListener('click', f_redo, {capture: true});
+
+function f_undo() {
+    event.stopPropagation();
+    if (action_ptr-1 >= 0 && action_stack[(action_ptr-1)] !== null) {
+        action_ptr--;
+        drawer.putImageData(action_stack[action_ptr], 0, 0);
+    }
+}
+
+function f_redo() {
+    event.stopPropagation();
+    if (action_stack[(action_ptr+1)] !== null && action_ptr+1 <= action_stack.length) {
+        action_ptr++;
+        drawer.putImageData(action_stack[action_ptr], 0, 0);
+    }
+}
+
 
 function trashcan() {
     event.stopPropagation();
-    drawer.clearRect(0, 0, 477, 477);
-    toggle(canvas)
+    drawer.clearRect(0, 0, size, size);
+    toggle(canvas);
+    save_data();
 }
 
 
@@ -59,8 +86,6 @@ function toggle() {
         $("#"+wrapper.id).animate({borderWidth: '4px'}, 'fast');
         active = !active;
         console.log('activated')
-    } else {
-
     }
 }
 
@@ -89,6 +114,7 @@ function change_tool(object) {
 
 function down(touch_mode) {
     if (active === true && (tool === 'pencil' || tool === 'eraser')) {
+        length = 0;
         collapser.classList.toggle('collapsed');
         drawing = true;
         if (touch_mode === true) {
@@ -105,8 +131,12 @@ function down(touch_mode) {
 function up(){
     if (drawing === true) {
         collapser.classList.toggle('collapsed');
+        if (length > 1) {
+            save_data();
+        }
+        length = 0;
+        drawing = false;
     }
-    drawing = false;
 }
 
 function mouseover() {
@@ -128,6 +158,7 @@ function draw(touch_mode) {
         let x;
         let y;
         if (drawing) {
+            length++;
             if (touch_mode === true) {
                 x = event.changedTouches[0].clientX - canvas.getBoundingClientRect().left;
                 y = event.changedTouches[0].clientY - canvas.getBoundingClientRect().top;
@@ -177,7 +208,24 @@ function draw(touch_mode) {
 }
 
 function dist(x1,y1,x2,y2) {
-	x2-=x1; y2-=y1;
+	x2-=x1;
+	y2-=y1;
 	return Math.sqrt((x2*x2) + (y2*y2));
+}
+
+function save_data() {
+    if (action_stack[action_ptr+1] !== null) {
+        action_stack.fill(null, action_ptr+1);
+    }
+    if (action_ptr+1 >= action_stack.length) {
+        let temp = action_stack.slice(history_size/2, history_size);
+        action_stack.fill(null);
+        action_stack = temp.concat(Array(history_size/2).fill(null));
+        action_ptr = history_size/2;
+        action_stack[action_ptr] = drawer.getImageData(0, 0, size, size);
+    } else {
+        action_stack[(action_ptr + 1)] = drawer.getImageData(0, 0, size, size);
+        action_ptr++;
+    }
 }
 
