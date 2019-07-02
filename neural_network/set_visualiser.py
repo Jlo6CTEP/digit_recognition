@@ -1,18 +1,13 @@
 import cv2
 
-from neural_network.io_images import ImageIO
+from neural_network.digit_guess import i_io
 
-test_images = ImageIO(0)
-nines = [x[0] for x in test_images.train_set if x[1] == 9]
+nines = i_io.images
 
 
 result = []
 
-for x in range(0, len(nines) - 55, 50):
-    f = nines[x:x + 20]
-    result.append(cv2.hconcat([l.reshape((28, 28)) for l in f]))
-
-result = cv2.vconcat(result)
+result = cv2.hconcat([x.reshape((28, 28)) for x in nines])
 
 cv2.imshow('nines', result)
 cv2.waitKey()

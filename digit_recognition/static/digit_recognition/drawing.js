@@ -8,6 +8,9 @@ let undo = document.getElementById('undo');
 let redo = document.getElementById('redo');
 let collapser = document.getElementById('collapser');
 
+let submit = document.getElementById('guess');
+let loading = document.getElementById('loading');
+
 let drawer = canvas.getContext('2d');
 let body = document.body;
 
@@ -19,18 +22,34 @@ let prev_x = 0;
 let prev_y = 0;
 let length = 0;
 
-const square_clear = 30;
-const size = 477;
+const mainSize = 477;
+const mainEraser = 40;
+const mainPencil = 20;
 
-const history_size = 10;
-let action_ptr = 0;
-let action_stack = Array(history_size).fill(null);
-action_stack[0] = drawer.getImageData(0, 0, size, size);
+const auxSize = 50;
+const auxPencil = 3;
+const auxEraser = 5;
+const scalingFactor = auxSize/mainSize;
 
+let smallCanvas = document.createElement('canvas');
+smallCanvas.setAttribute('width', auxSize + 'px');
+smallCanvas.setAttribute('height', auxSize + 'px');
+smallCanvas.setAttribute('draggable', 'false');
+let auxDrawer = smallCanvas.getContext('2d');
+
+let tempStorage = document.getElementById('small_canvas');
+tempStorage.appendChild(smallCanvas);
+
+const historySize = 10;
+let actionPtr = 0;
+let mainActionStack = Array(historySize).fill(null);
+mainActionStack[0] = drawer.getImageData(0, 0, mainSize, mainSize);
+
+let auxActionStack = Array(historySize).fill(null);
+auxActionStack[0] = auxDrawer.getImageData(0, 0, auxSize, auxSize);
 
 colors = ['red', 'green', 'blue', 'yellow'];
 
-drawer.fillStyle = 'red';
 canvas.style.border = '0px solid darkgray';
 
 canvas.addEventListener('click', toggle, {capture: true});
@@ -52,27 +71,55 @@ eraser.addEventListener('click', () => change_tool(eraser), {capture: true});
 trash.addEventListener('click', trashcan, {capture: true});
 undo.addEventListener('click', f_undo, {capture: true});
 redo.addEventListener('click', f_redo, {capture: true});
+submit.addEventListener('click', guess);
 
 function f_undo() {
     event.stopPropagation();
-    if (action_ptr-1 >= 0 && action_stack[(action_ptr-1)] !== null) {
-        action_ptr--;
-        drawer.putImageData(action_stack[action_ptr], 0, 0);
+    if (actionPtr-1 >= 0 && mainActionStack[(actionPtr-1)] !== null) {
+        actionPtr--;
+        drawer.putImageData(mainActionStack[actionPtr], 0, 0);
+        auxDrawer.putImageData(auxActionStack[actionPtr], 0, 0);
     }
 }
 
 function f_redo() {
     event.stopPropagation();
-    if (action_stack[(action_ptr+1)] !== null && action_ptr+1 <= action_stack.length) {
-        action_ptr++;
-        drawer.putImageData(action_stack[action_ptr], 0, 0);
+    if (mainActionStack[(actionPtr+1)] !== null && actionPtr+1 <= mainActionStack.length) {
+        actionPtr++;
+        auxDrawer.putImageData(auxActionStack[actionPtr], 0, 0);
     }
+}
+
+function guess() {
+    loading.classList.toggle('collapsed');
+    let data = new Blob([auxDrawer.getImageData(0, 0, auxSize, auxSize).data.buffer], {type: 'application/octet-stream'});
+    let formData = new FormData();
+    formData.append('img', data);
+    let xhr = new XMLHttpRequest();
+    xhr.timeout = 10000;
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            document.getElementById('response').placeholder = xhr.responseText
+        } else {
+            alert('An error occurred!');
+        }
+        loading.classList.toggle('collapsed');
+    };
+    xhr.onerror = function () {
+        alert('An error occurred!');
+        loading.classList.toggle('collapsed');
+    };
+
+    xhr.open('POST', '/upload/', true);
+    xhr.setRequestHeader('enctype', 'multipart/form-data');
+    xhr.send(formData);
 }
 
 
 function trashcan() {
     event.stopPropagation();
-    drawer.clearRect(0, 0, size, size);
+    drawer.clearRect(0, 0, mainSize, mainSize);
+    auxDrawer.clearRect(0, 0, mainSize, mainSize);
     toggle(canvas);
     save_data();
 }
@@ -115,7 +162,6 @@ function change_tool(object) {
 function down(touch_mode) {
     if (active === true && (tool === 'pencil' || tool === 'eraser')) {
         length = 0;
-        collapser.classList.toggle('collapsed');
         drawing = true;
         if (touch_mode === true) {
             prev_x = event.changedTouches[0].clientX - canvas.getBoundingClientRect().left;
@@ -158,6 +204,11 @@ function draw(touch_mode) {
         let x;
         let y;
         if (drawing) {
+
+            if (collapser.classList.contains('collapsed') === false) {
+                collapser.classList.toggle('collapsed');
+            }
+
             length++;
             if (touch_mode === true) {
                 x = event.changedTouches[0].clientX - canvas.getBoundingClientRect().left;
@@ -169,37 +220,31 @@ function draw(touch_mode) {
             }
 
             if (tool === 'pencil') {
-                drawer.strokeStyle = 'black';
-                drawer.lineCap = 'round';
-
-                drawer.beginPath();
-                drawer.moveTo(prev_x, prev_y);
-                drawer.lineTo(x, y);
-                drawer.lineWidth = 5;
-                drawer.stroke();
+                drawer.lineWidth = mainPencil;
+                drawer.globalCompositeOperation = 'source-over';
+                auxDrawer.lineWidth = auxPencil;
+                auxDrawer.globalCompositeOperation = 'source-over';
             } else {
-                let tmp, length;
-
-                let x1 = prev_x, x2 = x, y1 = prev_y, y2 = y;
-
-                // swap coordinate pairs if x-coordinates are RTL to make them LTR
-                if (x2 < x1) {
-                    tmp = x1;
-                    x1 = x2;
-                    x2 = tmp;
-                    tmp = y1;
-                    y1 = y2;
-                    y2 = tmp;
-                }
-
-                length = dist(x1, y1, x2, y2) + 5;
-
-                drawer.save();
-                drawer.translate(x1, y1);
-                drawer.rotate(Math.atan2(y2 - y1, x2 - x1));
-                drawer.clearRect(0, -square_clear/2, length, square_clear);
-                drawer.restore();
+                drawer.lineWidth = mainEraser;
+                drawer.globalCompositeOperation = 'destination-out';
+                auxDrawer.lineWidth = auxEraser;
+                auxDrawer.globalCompositeOperation = 'destination-out';
             }
+
+            drawer.strokeStyle = 'black';
+            drawer.lineCap = 'round';
+            drawer.beginPath();
+            drawer.moveTo(prev_x, prev_y);
+            drawer.lineTo(x, y);
+            drawer.stroke();
+
+            auxDrawer.strokeStyle = 'black';
+            auxDrawer.lineCap = 'round';
+            auxDrawer.beginPath();
+            auxDrawer.moveTo(prev_x * scalingFactor, prev_y * scalingFactor);
+            auxDrawer.lineTo(x * scalingFactor, y * scalingFactor);
+            auxDrawer.stroke();
+
             prev_x = x;
             prev_y = y;
             console.log(x + ' ' + y)
@@ -214,18 +259,27 @@ function dist(x1,y1,x2,y2) {
 }
 
 function save_data() {
-    if (action_stack[action_ptr+1] !== null) {
-        action_stack.fill(null, action_ptr+1);
+    if (mainActionStack[actionPtr+1] !== null) {
+        mainActionStack.fill(null, actionPtr+1);
+        auxActionStack.fill(null, actionPtr+1);
     }
-    if (action_ptr+1 >= action_stack.length) {
-        let temp = action_stack.slice(history_size/2, history_size);
-        action_stack.fill(null);
-        action_stack = temp.concat(Array(history_size/2).fill(null));
-        action_ptr = history_size/2;
-        action_stack[action_ptr] = drawer.getImageData(0, 0, size, size);
+    if (actionPtr+1 >= mainActionStack.length) {
+        let mainTemp = mainActionStack.slice(historySize/2, historySize);
+        let auxTemp = auxActionStack.slice(historySize/2, historySize);
+
+        mainActionStack.fill(null);
+        auxActionStack.fill(null);
+
+        mainActionStack = mainTemp.concat(Array(historySize/2).fill(null));
+        auxActionStack = auxTemp.concat(Array(historySize/2).fill(null));
+
+        actionPtr = historySize/2;
+        mainActionStack[actionPtr] = drawer.getImageData(0, 0, mainSize, mainSize);
+        auxActionStack[actionPtr] = auxDrawer.getImageData(0, 0, mainSize, mainSize);
     } else {
-        action_stack[(action_ptr + 1)] = drawer.getImageData(0, 0, size, size);
-        action_ptr++;
+        mainActionStack[(actionPtr + 1)] = drawer.getImageData(0, 0, mainSize, mainSize);
+        auxActionStack[(actionPtr + 1)] = auxDrawer.getImageData(0, 0, mainSize, mainSize);
+        actionPtr++;
     }
 }
 

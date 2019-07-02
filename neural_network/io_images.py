@@ -3,10 +3,8 @@ import os
 import numpy
 
 # modes
-TEST_SET = 0
-TRAIN_SET = 1
-
-IMAGE_DIR = '../imgs'
+path = os.path.dirname(os.path.abspath(__file__))
+IMAGE_DIR = os.path.join(path, '../imgs')
 
 TRAIN_SET_LABELS = 'train-labels-idx1-ubyte'
 TRAIN_SET_IMAGES = 'train-images-idx3-ubyte'
@@ -15,6 +13,14 @@ TEST_SET_IMAGES = 't10k-images-idx3-ubyte'
 
 LABEL_MN = 0x00000801
 IMAGE_MN = 0x00000803
+
+MY_DATASET = 'my_dataset'
+
+modes = {
+    0: (TRAIN_SET_LABELS, TRAIN_SET_IMAGES),
+    1: (TEST_SET_LABELS, TEST_SET_IMAGES),
+    2: (None, MY_DATASET)
+}
 
 
 class ImageIO:
@@ -54,15 +60,10 @@ class ImageIO:
         xxxx     unsigned byte   ??               pixel
         """
 
-        (f_name_labels, f_name_images) = (TRAIN_SET_LABELS, TRAIN_SET_IMAGES) \
-            if self.mode == TRAIN_SET else (TEST_SET_LABELS, TEST_SET_IMAGES)
+        (f_name_labels, f_name_images) = modes[self.mode]
 
-        f_labels = open(os.path.join(IMAGE_DIR, f_name_labels), 'rb')
-        assert (int.from_bytes(f_labels.read(4), byteorder='big') == LABEL_MN)
-        item_number = int.from_bytes(f_labels.read(4), byteorder='big')
-
-        labels = numpy.fromfile(f_labels, numpy.uint8, -1, "")
-        f_labels.close()
+        if os.stat(os.path.join(IMAGE_DIR, f_name_images)).st_size == 0:
+            return
 
         # reading images
         f_images = open(os.path.join(IMAGE_DIR, f_name_images), 'rb')
@@ -77,5 +78,35 @@ class ImageIO:
         for x in range(item_number):
             images[x] = numpy.fromfile(f_images, numpy.uint8, x_axis * y_axis, "") / 255.0
 
+        if f_name_labels is not None:
+            f_labels = open(os.path.join(IMAGE_DIR, f_name_labels), 'rb')
+            assert (int.from_bytes(f_labels.read(4), byteorder='big') == LABEL_MN)
+            item_number = int.from_bytes(f_labels.read(4), byteorder='big')
+            labels = numpy.fromfile(f_labels, numpy.uint8, -1, "")
+            self.train_set = list(zip(images, labels))
+            f_labels.close()
+        else:
+            labels = None
+
         self.images, self.labels = images, labels
-        self.train_set = list(zip(images, labels))
+
+    def append_image(self, img):
+        assert (self.mode == 2)
+
+        size = os.stat(os.path.join(IMAGE_DIR, MY_DATASET)).st_size
+        f = open(os.path.join(IMAGE_DIR, MY_DATASET), 'r+b')
+
+        if size != 0:
+            f.seek(4)
+            item_number = int.from_bytes(f.read(4), byteorder='big')
+            f.seek(4)
+            f.write(int.to_bytes(item_number + 1, 4, byteorder='big', signed=True))
+
+            f.seek(size)
+            f.write(img.flatten().tobytes())
+        else:
+            f.write(int.to_bytes(IMAGE_MN, 4, byteorder='big'))
+            f.write(int.to_bytes(0, 4, byteorder='big'))
+            f.write(int.to_bytes(img.shape[0], 4, byteorder='big'))
+            f.write(int.to_bytes(img.shape[1], 4, byteorder='big'))
+        f.close()

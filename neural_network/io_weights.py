@@ -11,8 +11,9 @@ TRAINED = 1
 #   trained weights and biases will be in TRAINED_DIR/WEIGHTS_FILE/VECTOR
 #   images must be in IMAGE_DIR
 
-TRAINED_DIR = '../trained_coefficients'
-RAND_DIR = '../random_coefficients'
+path = os.path.dirname(os.path.abspath(__file__))
+TRAINED_DIR = os.path.join(path, '../trained_coefficients')
+RAND_DIR = os.path.join(path, '../random_coefficients')
 WEIGHTS_FILE = 'vector'
 
 TRAIN_SET_LABELS = 'train-labels-idx1-ubyte'

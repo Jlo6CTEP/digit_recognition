@@ -1,0 +1,48 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+        <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <title> Digits </title>
+
+        {% block style %} {% endblock %}
+
+    </head>
+    <body>
+        <div class="container-fluid full d-flex flex-column justify-content-between">
+            <div class="row">
+                <div class="col p-0">
+                    <nav class="navbar navbar-expand navbar-light bg-light">
+                        <a class="navbar-brand" >
+                            <h3> Digit recognition </h3>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            {%  block body %} {% endblock %}
+
+            <div class="row">
+                <footer class="col p-0 page-footer font-small unselectable">
+                    <div class="footer-copyright text-center bg-light py-3 ">© 2018 Copyright:
+                        <a href="https://t.me/realnigger" target="_blank"> Erg Noor</a>
+                    </div>
+                </footer>
+            </div>
+
+        </div>
+        <!-- Optional JavaScript -->
+        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+        <script src="https://code.jquery.com/jquery-3.1.0.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+        <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+        {% block scripts %} {% endblock %}
+    </body>
+</html>

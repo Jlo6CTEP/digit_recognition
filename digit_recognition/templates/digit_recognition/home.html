@@ -1,17 +1,7 @@
-{% load static %}
-<!doctype html>
-<html lang="en">
-    <head>
-        <!-- Required meta tags -->
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
-        <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
-        <!-- Bootstrap CSS -->
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-        <link rel="stylesheet" type="text/css" href="{% static 'digit_recognition/base.css' %}">
-        <title> Digits </title>
+{% extends 'digit_recognition/base.html' %}
+    {%  load static %}
 
+    {% block style %}
         <style>
             .eraser{
                 cursor: -webkit-image-set(url({% static 'digit_recognition/eraser-solid1x.svg' %}) 1x,
@@ -26,88 +16,75 @@
             }
         </style>
 
-    </head>
-    <body>
-        <div class="container-fluid full d-flex flex-column justify-content-between">
-            <div class="row">
-                <div class="col p-0">
-                    <nav class="navbar navbar-expand navbar-light bg-light">
-                        <a class="navbar-brand" >
-                            <h3> Digit recognition </h3>
-                        </a>
-                    </nav>
-                </div>
-            </div>
+        <link rel="stylesheet" type="text/css" href="{% static 'digit_recognition/base.css' %}">
+    {% endblock %}
 
-            <div class="row justify-content-center">
-                <div class="col-auto main_input form-group p-3">
-                    <div class="row">
-                        <div class="col-12 justify-content-center" style="text-align: center" id="text">
-                            <p>Draw your digit here</p>
-                        </div>
+    {% block body %}
+        <div class="row justify-content-center">
+            <div class="col-auto main_input form-group p-3">
+                <div class="row">
+                    <div class="col-12 justify-content-center centered" id="text" >
+                        <h5 class="unselectable"> Draw your digit here</h5>
                     </div>
-
-                    <div class="row justify-content-center">
-                        <div class="col-auto pb-2">
-                            <div class="wrapper" id="wrapper">
-                                <div style="background-image: url({% static 'digit_recognition/background.jpg' %}); height: 477px; width: 477px;">
-                                    <canvas id="drawing_board" class="select" width="477" height="477">
-
-                                    </canvas>
-                                    <div class="btn-group-vertical btn-group-toggle control collapsed" data-toggle="buttons" id="collapser">
-                                        <label class="btn btn-default active" id="select">
-                                            <input type="radio" name="options" autocomplete="off" checked>
-                                            <i class="fas fa-mouse-pointer fa-2x"></i>
-                                        </label>
-                                        <label class="btn btn-default" id="pencil">
-                                            <input type="radio" name="options" autocomplete="off">
-                                            <i class="fas fa-pencil-alt fa-2x"></i>
-                                        </label>
-                                        <label class="btn btn-default" id="eraser">
-                                            <input type="radio" name="options" autocomplete="off">
-                                            <i class="fas fa-eraser fa-2x"></i>
-                                        </label>
-                                        <button class="btn btn-default" id="trash">
-                                            <i class="far fa-trash-alt fa-2x"></i>
-                                        </button>
-                                        <button class="btn btn-default" id="undo">
-                                            <i class="fas fa-undo fa-2x"></i>
-                                        </button>
-                                        <button class="btn btn-default" id="redo">
-                                            <i class="fas fa-redo fa-2x"></i>
-                                        </button>
-                                    </div>
+                </div>
+                <div class="row justify-content-center" draggable="false">
+                    <div class="col-auto pb-2">
+                        <div class="wrapper" id="wrapper" draggable="false">
+                            <div style="background-image: url({% static 'digit_recognition/background.jpg' %}); height: 477px; width: 477px;">
+                                <canvas id="drawing_board" class="select" width="477" height="477" draggable="false">
+                                </canvas>
+                                <div class="btn-group-vertical btn-group-toggle control collapsed" data-toggle="buttons" id="collapser">
+                                    <label class="btn btn-default active" id="select">
+                                        <input type="radio" name="options" autocomplete="off" checked>
+                                        <i class="fas fa-mouse-pointer fa-2x"></i>
+                                    </label>
+                                    <label class="btn btn-default" id="pencil">
+                                        <input type="radio" name="options" autocomplete="off">
+                                        <i class="fas fa-pencil-alt fa-2x"></i>
+                                    </label>
+                                    <label class="btn btn-default" id="eraser">
+                                        <input type="radio" name="options" autocomplete="off">
+                                        <i class="fas fa-eraser fa-2x"></i>
+                                    </label>
+                                    <button class="btn btn-default" id="trash">
+                                        <i class="far fa-trash-alt fa-2x"></i>
+                                    </button>
+                                    <button class="btn btn-default" id="undo">
+                                        <i class="fas fa-undo fa-2x"></i>
+                                    </button>
+                                    <button class="btn btn-default" id="redo">
+                                        <i class="fas fa-redo fa-2x"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    <div class="row">
-                        <div class="col input-group pb-2">
-                            <div class="input-group-prepend">
-                                <button class="btn btn-outline-secondary" type="button">Guess</button>
-                            </div>
-                          <input type="text" class="form-control" placeholder="Hmm what is this" aria-label="" aria-describedby="basic-addon1" readonly>
+                </div>
+                <div class="row">
+                    <div class="col input-group pb-2">
+                        <div class="input-group-prepend">
+                            <button class="btn btn-outline-secondary" type="button" id="guess">Guess</button>
+                        </div>
+                        <input type="text" class="form-control unselectable" placeholder="Hmm what is this" aria-label="" aria-describedby="basic-addon1" readonly id="response">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary collapsible collapsed p-0" style="overflow: hidden;" type="button" id="loading" disabled>
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="row">
-                <footer class="col p-0 page-footer font-small">
-                    <div class="footer-copyright text-center bg-light py-3 ">© 2018 Copyright:
-                        <a href="https://t.me/realnigger" target="_blank"> Erg Noor</a>
+            <div class="row justify-content-center" draggable="false">
+                <div class="col-2">
+                    <div id="small_canvas" style="width: 60px; height: 60px; border: 3px darkgray solid">
                     </div>
-                </footer>
+                </div>
             </div>
-
         </div>
-        <!-- Optional JavaScript -->
-        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-        <script src="https://code.jquery.com/jquery-3.1.0.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-        <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
+    {% endblock %}
+
+
+    {% block scripts %}
         <script src="{% static 'digit_recognition/drawing.js' %}"></script>
-    </body>
-</html>
+    {% endblock %}
