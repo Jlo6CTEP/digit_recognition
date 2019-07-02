@@ -37,9 +37,6 @@ smallCanvas.setAttribute('height', auxSize + 'px');
 smallCanvas.setAttribute('draggable', 'false');
 let auxDrawer = smallCanvas.getContext('2d');
 
-let tempStorage = document.getElementById('small_canvas');
-tempStorage.appendChild(smallCanvas);
-
 const historySize = 10;
 let actionPtr = 0;
 let mainActionStack = Array(historySize).fill(null);

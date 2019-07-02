@@ -1,12 +1,13 @@
 import random
-from django.http import HttpResponse
-from django.shortcuts import render
+
 import numpy
+from django.http import HttpResponse
+from django.shortcuts import render, render_to_response
 
 # Create your views here.
-from neural_network.digit_guess import guess_digit
+from django.template import RequestContext
 
-password = '14DSandROBrulez88'
+from neural_network.digit_guess import guess_digit
 
 responses = [
     'Hey hooman! Yer digit is {}',
@@ -33,16 +34,3 @@ def upload(request):
         digit = guess_digit(img)
         return HttpResponse(random.sample(responses, 1)[0].format(digit))
     return HttpResponse('fokk ye hooman')
-
-
-def dataset(request):
-    return render(request, 'digit_recognition/dataset.html')
-
-
-def auth(request):
-    if request.method == 'POST':
-        data = request.body
-        if data != password:
-            return HttpResponse('fokk ye hooman')
-        else:
-            return HttpResponse('???????')
