@@ -6,8 +6,8 @@ nines = i_io.images
 
 
 result = []
+for x in range(0, len(i_io.images) - 19, 20):
+    result.append(cv2.hconcat([x.reshape((28, 28)) for x in nines[x:x+20]]))
 
-result = cv2.hconcat([x.reshape((28, 28)) for x in nines])
-
-cv2.imshow('nines', result)
+cv2.imshow('nines', cv2.vconcat(result))
 cv2.waitKey()

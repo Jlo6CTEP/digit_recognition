@@ -10,13 +10,16 @@
         <!-- Bootstrap CSS -->
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
         <title> Digits </title>
+        <link rel="apple-touch-icon" sizes="180x180" href="{% static 'digit_recognition/apple-touch-icon.png' %}">   15         <link rel="icon" type="image/png" sizes="32x32" href= t'gtrcii/vo-x.g%}>
+            lnrlio yeia/n"s11 {ai'g_eoiofio11pg%">1    ike"% ategtni.1   <i lms%st itrobg%} la">9   m itnieoo "d3"
+              -o#fff>
 
         {% block style %} {% endblock %}
 
     </head>
     <body>
         <div class="container-fluid full d-flex flex-column justify-content-between">
-            <div class="row">
+            <div class="row" id="header">
                 <div class="col p-0">
                     <nav class="navbar navbar-expand navbar-light bg-light">
                         <a class="navbar-brand" >
@@ -28,7 +31,7 @@
 
             {%  block body %} {% endblock %}
 
-            <div class="row">
+            <div class="row" id="footer">
                 <footer class="col p-0 page-footer font-small unselectable">
                     <div class="footer-copyright text-center bg-light py-3 ">© 2018 Copyright:
                         <a href="https://t.me/realnigger" target="_blank"> Erg Noor</a>

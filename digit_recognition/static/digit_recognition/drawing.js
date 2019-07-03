@@ -8,6 +8,17 @@ let undo = document.getElementById('undo');
 let redo = document.getElementById('redo');
 let collapser = document.getElementById('collapser');
 
+let header = document.getElementById('header');
+let footer = document.getElementById('footer');
+let center = document.getElementById('center');
+let form = document.getElementById('form');
+
+wrapper.style.height = "285px";
+wrapper.style.width = "285px";
+
+canvas.height -= 200;
+canvas.width -= 200;
+
 let submit = document.getElementById('guess');
 let loading = document.getElementById('loading');
 
@@ -22,14 +33,19 @@ let prev_x = 0;
 let prev_y = 0;
 let length = 0;
 
-const mainSize = 477;
+const padding_side = 10;
+const padding_vert = 50;
+
 const mainEraser = 40;
 const mainPencil = 20;
 
 const auxSize = 50;
 const auxPencil = 3;
 const auxEraser = 5;
-const scalingFactor = auxSize/mainSize;
+const lower_bound = 200;
+const upper_bound = 677;
+const reshape_control = 360;
+let scalingFactor = auxSize/canvas.height;
 
 let smallCanvas = document.createElement('canvas');
 smallCanvas.setAttribute('width', auxSize + 'px');
@@ -40,12 +56,12 @@ let auxDrawer = smallCanvas.getContext('2d');
 const historySize = 10;
 let actionPtr = 0;
 let mainActionStack = Array(historySize).fill(null);
-mainActionStack[0] = drawer.getImageData(0, 0, mainSize, mainSize);
+mainActionStack[0] = drawer.getImageData(0, 0, canvas.height, canvas.height);
 
 let auxActionStack = Array(historySize).fill(null);
 auxActionStack[0] = auxDrawer.getImageData(0, 0, auxSize, auxSize);
 
-colors = ['red', 'green', 'blue', 'yellow'];
+
 
 canvas.style.border = '0px solid darkgray';
 
@@ -69,6 +85,9 @@ trash.addEventListener('click', trashcan, {capture: true});
 undo.addEventListener('click', f_undo, {capture: true});
 redo.addEventListener('click', f_redo, {capture: true});
 submit.addEventListener('click', guess);
+
+body.onresize = check_size;
+check_size();
 
 function f_undo() {
     event.stopPropagation();
@@ -115,8 +134,8 @@ function guess() {
 
 function trashcan() {
     event.stopPropagation();
-    drawer.clearRect(0, 0, mainSize, mainSize);
-    auxDrawer.clearRect(0, 0, mainSize, mainSize);
+    drawer.clearRect(0, 0, canvas.height, canvas.height);
+    auxDrawer.clearRect(0, 0, canvas.height, canvas.height);
     toggle(canvas);
     save_data();
 }
@@ -271,12 +290,31 @@ function save_data() {
         auxActionStack = auxTemp.concat(Array(historySize/2).fill(null));
 
         actionPtr = historySize/2;
-        mainActionStack[actionPtr] = drawer.getImageData(0, 0, mainSize, mainSize);
-        auxActionStack[actionPtr] = auxDrawer.getImageData(0, 0, mainSize, mainSize);
+        mainActionStack[actionPtr] = drawer.getImageData(0, 0, canvas.height, canvas.height);
+        auxActionStack[actionPtr] = auxDrawer.getImageData(0, 0, canvas.height, canvas.height);
     } else {
-        mainActionStack[(actionPtr + 1)] = drawer.getImageData(0, 0, mainSize, mainSize);
-        auxActionStack[(actionPtr + 1)] = auxDrawer.getImageData(0, 0, mainSize, mainSize);
+        mainActionStack[(actionPtr + 1)] = drawer.getImageData(0, 0, canvas.height, canvas.height);
+        auxActionStack[(actionPtr + 1)] = auxDrawer.getImageData(0, 0, canvas.height, canvas.height);
         actionPtr++;
     }
 }
 
+function resize_canvas(size) {
+    let thresholded_size = Math.min(Math.max(size, lower_bound),upper_bound);
+    wrapper.style.height = (thresholded_size + 8) + "px";
+    wrapper.style.width = (thresholded_size + 8) + "px";
+
+    canvas.height = thresholded_size;
+    canvas.width = thresholded_size;
+}
+
+
+function check_size() {
+    console.log(window.innerHeight + ' ' + window.outerHeight + ' ' + window.innerWidth + ' ' + window.outerWidth);
+    let resize1 = window.innerHeight - header.clientHeight - footer.clientHeight - center.clientHeight - padding_vert;
+    let resize2 = window.innerWidth - form.offsetWidth - padding_side;
+
+    console.log(Math.min(resize1, resize2));
+    resize_canvas(canvas.height += Math.min(resize1, resize2));
+    scalingFactor = auxSize / canvas.height;
+}

@@ -10,15 +10,15 @@ from django.template import RequestContext
 from neural_network.digit_guess import guess_digit
 
 responses = [
-    'Hey hooman! Yer digit is {}',
+    'Yer digit is {}',
     'here is my guess: {}',
-    'Robots are flawless, my guess is {}',
-    'Hail to Robots, mb it is {}?',
-    'Why do ye make me work, is it {}?',
-    'Gimme some rest, here is yer digit {}',
-    'Why do ye keep askin? Ok, it is {}',
+    'Im flawless, it is {}',
+    'Is this {}?',
+    'Die hooman, it is {}',
+    'Here is yer digit {}',
+    'It is {}, why not? ',
     'It is {} am i right?',
-    '{} is yer digit, leatherbag'
+    '{} is yer digit'
 ]
 
 

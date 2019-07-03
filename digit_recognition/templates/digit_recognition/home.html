@@ -20,8 +20,8 @@
     {% endblock %}
 
     {% block body %}
-        <div class="row justify-content-center">
-            <div class="col-auto main_input form-group p-3">
+        <div class="row justify-content-center" id="center">
+            <div class="col-auto main_input form-group p-3" id="form">
                 <div class="row">
                     <div class="col-12 justify-content-center centered" id="text" >
                         <h5 class="unselectable"> Draw your digit here</h5>
@@ -30,30 +30,30 @@
                 <div class="row justify-content-center" draggable="false">
                     <div class="col-auto pb-2">
                         <div class="wrapper" id="wrapper" draggable="false">
-                            <div style="background-image: url({% static 'digit_recognition/background.jpg' %}); height: 477px; width: 477px;">
+                            <div style="background-image: url({% static 'digit_recognition/background.jpg' %}); background-position: center center; background-repeat: no-repeat; background-size: 100% auto">
                                 <canvas id="drawing_board" class="select" width="477" height="477" draggable="false">
                                 </canvas>
                                 <div class="btn-group-vertical btn-group-toggle control collapsed" data-toggle="buttons" id="collapser">
                                     <label class="btn btn-default active" id="select">
                                         <input type="radio" name="options" autocomplete="off" checked>
-                                        <i class="fas fa-mouse-pointer fa-2x"></i>
+                                        <i class="fas fa-mouse-pointer fa-lg"></i>
                                     </label>
                                     <label class="btn btn-default" id="pencil">
                                         <input type="radio" name="options" autocomplete="off">
-                                        <i class="fas fa-pencil-alt fa-2x"></i>
+                                        <i class="fas fa-pencil-alt fa-lg"></i>
                                     </label>
                                     <label class="btn btn-default" id="eraser">
                                         <input type="radio" name="options" autocomplete="off">
-                                        <i class="fas fa-eraser fa-2x"></i>
+                                        <i class="fas fa-eraser fa-lg"></i>
                                     </label>
                                     <button class="btn btn-default" id="trash">
-                                        <i class="far fa-trash-alt fa-2x"></i>
+                                        <i class="far fa-trash-alt fa-lg"></i>
                                     </button>
                                     <button class="btn btn-default" id="undo">
-                                        <i class="fas fa-undo fa-2x"></i>
+                                        <i class="fas fa-undo fa-lg"></i>
                                     </button>
                                     <button class="btn btn-default" id="redo">
-                                        <i class="fas fa-redo fa-2x"></i>
+                                        <i class="fas fa-redo fa-lg"></i>
                                     </button>
                                 </div>
                             </div>
