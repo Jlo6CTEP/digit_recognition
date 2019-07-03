@@ -13,12 +13,6 @@ let footer = document.getElementById('footer');
 let center = document.getElementById('center');
 let form = document.getElementById('form');
 
-wrapper.style.height = "285px";
-wrapper.style.width = "285px";
-
-canvas.height -= 200;
-canvas.width -= 200;
-
 let submit = document.getElementById('guess');
 let loading = document.getElementById('loading');
 
@@ -36,15 +30,17 @@ let length = 0;
 const padding_side = 10;
 const padding_vert = 50;
 
-const mainEraser = 40;
-const mainPencil = 20;
+let mainEraser = 40;
+let mainPencil = 20;
+
+let mainEraserFactor = 0.08;
+let mainPencilFactor = 0.04;
 
 const auxSize = 50;
 const auxPencil = 3;
 const auxEraser = 5;
-const lower_bound = 200;
+const lower_bound = collapser.clientHeight + 8;
 const upper_bound = 677;
-const reshape_control = 360;
 let scalingFactor = auxSize/canvas.height;
 
 let smallCanvas = document.createElement('canvas');
@@ -306,6 +302,11 @@ function resize_canvas(size) {
 
     canvas.height = thresholded_size;
     canvas.width = thresholded_size;
+
+    mainEraser = canvas.height * mainEraserFactor;
+    mainPencil = canvas.height * mainPencilFactor;
+
+    trashcan();
 }
 
 

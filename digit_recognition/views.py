@@ -32,5 +32,7 @@ def upload(request):
         dim = int(numpy.sqrt(len(data) / 4))
         img = numpy.frombuffer(data, dtype=numpy.uint8)[3::4].reshape((dim, dim))
         digit = guess_digit(img)
-        return HttpResponse(random.sample(responses, 1)[0].format(digit))
+        if digit is not None:
+            return HttpResponse(random.sample(responses, 1)[0].format(digit))
+        return HttpResponse('Digit is too small')
     return HttpResponse('fokk ye hooman')

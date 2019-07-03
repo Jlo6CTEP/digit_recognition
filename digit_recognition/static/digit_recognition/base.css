@@ -32,8 +32,8 @@ h2 {
 .control {
     position: absolute;
     overflow: hidden;
-    bottom: 32px;
-    right: 39px;
+    bottom: 16px;
+    right: 24px;
     max-width: 100px;
     transition: max-width 0.3s;
     cursor: default;

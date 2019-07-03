@@ -7,12 +7,15 @@ from neural_network.network import Network
 BOX_SIZE = 20
 IMG_SIZE = 28
 PAD = 4
+IMG_REJECT_THRESHOLD = 50
 
 nn = Network(64, 64, 3, 50, 100, True)
 i_io = ImageIO(2)
 
 
 def guess_digit(img):
+    if numpy.count_nonzero(img) <= IMG_REJECT_THRESHOLD:
+        return
     mean_x_axis = numpy.argwhere(img.mean(axis=0) != 0.0).flatten()
     mean_y_axis = numpy.argwhere(img.mean(axis=1) != 0.0).flatten()
 
