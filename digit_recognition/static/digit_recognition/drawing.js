@@ -27,7 +27,7 @@ let prev_x = 0;
 let prev_y = 0;
 let length = 0;
 
-const padding_side = 50;
+const padding_side = 80;
 const padding_vert = 50;
 
 let mainEraser = 40;
@@ -40,7 +40,7 @@ const auxSize = 50;
 const auxPencil = 3;
 const auxEraser = 5;
 const lower_bound = collapser.clientHeight + 8;
-const upper_bound = 677;
+const upper_bound = 477;
 let scalingFactor = auxSize/canvas.height;
 
 let smallCanvas = document.createElement('canvas');
@@ -312,8 +312,13 @@ function check_size() {
     console.log(window.outerHeight + ' ' + ' ' + window.outerWidth);
     let resize1 = window.outerHeight - center.clientHeight - padding_vert;
     let resize2 = window.outerWidth - canvas.offsetWidth - padding_side;
+    let resize = Math.min(resize1, resize2);
 
-    console.log(Math.min(resize1, resize2));
-    resize_canvas(canvas.height += Math.min(resize1, resize2));
+    console.log(resize);
+    if (resize === 0) {
+        return
+    }
+
+    resize_canvas(canvas.height += resize);
     scalingFactor = auxSize / canvas.height;
 }
