@@ -38,7 +38,10 @@ def guess_digit(img):
 
     offset = numpy.array([IMG_SIZE, IMG_SIZE]) // 2 - numpy.array([cm_x, cm_y])
 
-    target[offset[1]: digit_norm.shape[0] + offset[1], offset[0]: digit_norm.shape[1] + offset[0]] = digit_norm
+    shaper = target[offset[1]: digit_norm.shape[0] + offset[1], offset[0]: digit_norm.shape[1] + offset[0]]
+
+    target[offset[1]: digit_norm.shape[0] + offset[1], offset[0]: digit_norm.shape[1] + offset[0]] = \
+        digit_norm[0:shaper.shape[0],  0:shaper.shape[1]]
     target = target.astype(dtype=numpy.uint8)
 
     final_image = target / 255.0
