@@ -27,7 +27,7 @@ let prev_x = 0;
 let prev_y = 0;
 let length = 0;
 
-const padding_side = 10;
+const padding_side = 50;
 const padding_vert = 50;
 
 let mainEraser = 40;
@@ -83,7 +83,7 @@ redo.addEventListener('click', f_redo, {capture: true});
 submit.addEventListener('click', guess);
 
 body.onresize = check_size;
-check_size();
+body.onload = check_size;
 
 function f_undo() {
     event.stopPropagation();
@@ -305,15 +305,13 @@ function resize_canvas(size) {
 
     mainEraser = canvas.height * mainEraserFactor;
     mainPencil = canvas.height * mainPencilFactor;
-
-    trashcan();
 }
 
 
 function check_size() {
-    console.log(window.innerHeight + ' ' + window.outerHeight + ' ' + window.innerWidth + ' ' + window.outerWidth);
-    let resize1 = window.innerHeight - header.clientHeight - footer.clientHeight - center.clientHeight - padding_vert;
-    let resize2 = window.innerWidth - form.offsetWidth - padding_side;
+    console.log(window.outerHeight + ' ' + ' ' + window.outerWidth);
+    let resize1 = window.outerHeight - center.clientHeight - padding_vert;
+    let resize2 = window.outerWidth - canvas.offsetWidth - padding_side;
 
     console.log(Math.min(resize1, resize2));
     resize_canvas(canvas.height += Math.min(resize1, resize2));
