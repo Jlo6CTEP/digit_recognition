@@ -28,7 +28,7 @@ let prev_y = 0;
 let length = 0;
 
 const padding_side = 80;
-const padding_vert = 50;
+const padding_vert = 10;
 
 let mainEraser = 40;
 let mainPencil = 20;

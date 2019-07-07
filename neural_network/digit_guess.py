@@ -16,12 +16,14 @@ i_io = ImageIO(2)
 def guess_digit(img):
     if numpy.count_nonzero(img) <= IMG_REJECT_THRESHOLD:
         return
-    mean_x_axis = numpy.argwhere(img.mean(axis=0) != 0.0).flatten()
-    mean_y_axis = numpy.argwhere(img.mean(axis=1) != 0.0).flatten()
 
-    top_right = (mean_x_axis[len(mean_x_axis) - 1], mean_y_axis[len(mean_y_axis) - 1])
-    bottom_left = (mean_x_axis[0], mean_y_axis[0])
+    # find non-zero entries along x and y axis in image matrix
+    nonzero_x = numpy.argwhere(img.mean(axis=0) != 0.0).flatten()
+    nonzero_y = numpy.argwhere(img.mean(axis=1) != 0.0).flatten()
 
+    #
+    top_right = (nonzero_x[len(nonzero_x) - 1], nonzero_y[len(nonzero_y) - 1])
+    bottom_left = (nonzero_x[0], nonzero_y[0])
     digit = img[bottom_left[1]: top_right[1] + 1, bottom_left[0]: top_right[0] + 1]
 
     scaling = BOX_SIZE / max(digit.shape)

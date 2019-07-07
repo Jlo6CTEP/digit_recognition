@@ -14,7 +14,6 @@ responses = [
     'here is my guess: {}',
     'Im flawless, it is {}',
     'Is this {}?',
-    'Die hooman, it is {}',
     'Here is yer digit {}',
     'It is {}, why not? ',
     'It is {} am i right?',
@@ -35,4 +34,4 @@ def upload(request):
         if digit is not None:
             return HttpResponse(random.sample(responses, 1)[0].format(digit))
         return HttpResponse('Digit is too small')
-    return HttpResponse('fokk ye hooman')
+    return HttpResponse('error')
