@@ -4,9 +4,9 @@
 # User-specific stuff
 
 venv
-
+static/*
 /**/__pycache__
-
+imgs/my_dataset
 .idea
 .idea/*
 .idea/**/workspace.xml

@@ -86,6 +86,7 @@ body.onresize = check_size;
 body.onload = check_size;
 
 function f_undo() {
+    console.log('undo');
     event.stopPropagation();
     if (actionPtr-1 >= 0 && mainActionStack[(actionPtr-1)] !== null) {
         actionPtr--;
@@ -95,9 +96,11 @@ function f_undo() {
 }
 
 function f_redo() {
+    console.log('redo');
     event.stopPropagation();
     if (mainActionStack[(actionPtr+1)] !== null && actionPtr+1 <= mainActionStack.length) {
         actionPtr++;
+        drawer.putImageData(mainActionStack[actionPtr], 0, 0);
         auxDrawer.putImageData(auxActionStack[actionPtr], 0, 0);
     }
 }
